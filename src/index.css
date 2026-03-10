@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+/* Custom scrollbar for the parameter panel */
+.param-panel::-webkit-scrollbar {
+  width: 6px;
+}
+.param-panel::-webkit-scrollbar-track {
+  background: #1c1017;
+}
+.param-panel::-webkit-scrollbar-thumb {
+  background: #6b3a3a;
+  border-radius: 3px;
+}
+.param-panel::-webkit-scrollbar-thumb:hover {
+  background: #dc2626;
+}
+
+/* SVG preview container */
+.preview-container svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+.preview-container svg path,
+.preview-container svg circle,
+.preview-container svg line {
+  fill: none;
+}
+
+/* Subtle grid pattern on preview background */
+.preview-bg {
+  background-image:
+    radial-gradient(circle, rgba(220,38,38,0.06) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
