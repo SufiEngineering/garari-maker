@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Urdu font support */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+
+.font-urdu {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
+}
+
 /* Custom scrollbar for the parameter panel */
 .param-panel::-webkit-scrollbar {
   width: 6px;

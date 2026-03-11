@@ -1,13 +1,9 @@
 // ============================================================================
 // App — Main Garari Maker application
 // ============================================================================
-// Two-panel layout:
-//   Left:  Parameter inputs (chain, teeth, bore, mounting holes, keyway)
-//   Right: Live SVG preview of the sprocket geometry
-//
-// The sprocket model is rebuilt on every parameter change using Maker.js,
-// and the SVG preview is re-rendered from the model. DXF export creates
-// a CNC/laser-ready file with proper layers and mm units.
+// Responsive layout:
+//   Desktop: Side-by-side panels (parameters left, preview right)
+//   Mobile:  Tabbed view switching between parameters and preview
 // ============================================================================
 
 import { useState, useMemo, useCallback } from "react";
@@ -21,6 +17,7 @@ import {
   exportToDXF,
   generateDxfFilename,
 } from "./engine/sprocketGeometry";
+import { useLang } from "./i18n/LangContext";
 import ParameterPanel from "./components/ParameterPanel";
 import PreviewPanel from "./components/PreviewPanel";
 import DownloadModal from "./components/DownloadModal";
@@ -46,6 +43,9 @@ const DEFAULT_PARAMS: SprocketParams = {
 export default function App() {
   const [params, setParams] = useState<SprocketParams>(DEFAULT_PARAMS);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"params" | "preview">("params");
+  const [quantity, setQuantity] = useState(1);
+  const { t, toggleLang, isUrdu } = useLang();
 
   // Calculate dimensions from current parameters
   const dims = useMemo(() => calculateDimensions(params), [params]);
@@ -82,55 +82,110 @@ export default function App() {
   }, [params, errors]);
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-[#0f0808] text-white overflow-hidden">
+    <div
+      className={`h-screen w-screen flex flex-col bg-[#0f0808] text-white overflow-hidden ${isUrdu ? "font-urdu" : ""}`}
+      dir={isUrdu ? "rtl" : "ltr"}
+    >
       {/* Top branding bar */}
-      <header className="flex items-center justify-between px-5 py-2.5 bg-[#1a0e0e] border-b border-red-900/40">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center font-black text-white text-sm shadow-lg shadow-red-900/50">
+      <header className="flex items-center justify-between px-3 sm:px-5 py-2 sm:py-2.5 bg-[#1a0e0e] border-b border-red-900/40">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-red-600 flex items-center justify-center font-black text-white text-xs sm:text-sm shadow-lg shadow-red-900/50">
             G
           </div>
           <div>
-            <h1 className="text-base font-bold text-white tracking-tight leading-none">
-              Garari Maker
+            <h1 className="text-sm sm:text-base font-bold text-white tracking-tight leading-none">
+              {t.appName}
             </h1>
-            <p className="text-[10px] text-red-300/60 tracking-wide">
-              PRECISION SPROCKET DXF GENERATOR
+            <p className="text-[9px] sm:text-[10px] text-red-300/60 tracking-wide">
+              {t.appSubtitle}
             </p>
           </div>
         </div>
-        <div className="text-right">
-          <p className="text-[10px] text-neutral-500">
-            Powered by{" "}
-            <a
-              href="https://gararimaker.bysufi.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-red-400 hover:text-red-300 font-semibold transition-colors"
-            >
-              Sufi Engineering
-            </a>
-          </p>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Language toggle */}
+          <button
+            onClick={toggleLang}
+            className="px-2.5 py-1 rounded-md text-xs font-semibold bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-300 hover:text-white transition-colors cursor-pointer"
+          >
+            {t.langLabel}
+          </button>
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] text-neutral-500">
+              {t.poweredBy}{" "}
+              <a
+                href="https://sufi.engineering"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-red-400 hover:text-red-300 font-semibold transition-colors"
+              >
+                {t.sufiEngineering}
+              </a>
+            </p>
+          </div>
         </div>
       </header>
 
-      {/* Main content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left Panel — Parameters */}
-        <ParameterPanel
-          params={params}
-          dims={dims}
-          errors={errors}
-          onChange={setParams}
-          onExport={handleExport}
-        />
+      {/* Mobile tab bar — only visible on small screens */}
+      <div className="flex md:hidden border-b border-red-900/40 bg-[#140a0a]">
+        <button
+          onClick={() => setMobileTab("params")}
+          className={`flex-1 py-2.5 text-sm font-semibold text-center transition-colors cursor-pointer ${
+            mobileTab === "params"
+              ? "text-red-400 border-b-2 border-red-500 bg-red-950/20"
+              : "text-neutral-500 hover:text-neutral-300"
+          }`}
+        >
+          {t.tabParameters}
+        </button>
+        <button
+          onClick={() => setMobileTab("preview")}
+          className={`flex-1 py-2.5 text-sm font-semibold text-center transition-colors cursor-pointer ${
+            mobileTab === "preview"
+              ? "text-red-400 border-b-2 border-red-500 bg-red-950/20"
+              : "text-neutral-500 hover:text-neutral-300"
+          }`}
+        >
+          {t.tabPreview}
+        </button>
+      </div>
 
-        {/* Right Panel — SVG Preview */}
-        <PreviewPanel svgContent={svgContent} />
+      {/* Main content — responsive */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Panel — Parameters (always visible on desktop, tab-controlled on mobile) */}
+        <div
+          className={`${
+            mobileTab === "params" ? "flex" : "hidden"
+          } md:flex w-full md:w-80 md:min-w-[320px] flex-col`}
+        >
+          <ParameterPanel
+            params={params}
+            dims={dims}
+            errors={errors}
+            onChange={setParams}
+            onExport={handleExport}
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+          />
+        </div>
+
+        {/* Right Panel — SVG Preview (always visible on desktop, tab-controlled on mobile) */}
+        <div
+          className={`${
+            mobileTab === "preview" ? "flex" : "hidden"
+          } md:flex flex-1 flex-col`}
+        >
+          <PreviewPanel svgContent={svgContent} />
+        </div>
       </div>
 
       {/* Download success modal */}
       {showDownloadModal && (
-        <DownloadModal onClose={() => setShowDownloadModal(false)} />
+        <DownloadModal
+          params={params}
+          dims={dims}
+          quantity={quantity}
+          onClose={() => setShowDownloadModal(false)}
+        />
       )}
     </div>
   );
