@@ -1,7 +1,5 @@
-@import "tailwindcss";
-
-/* Urdu font support */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
+@import "tailwindcss";
 
 .font-urdu {
   font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;

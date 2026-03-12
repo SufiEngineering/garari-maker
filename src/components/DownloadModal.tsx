@@ -5,6 +5,7 @@
 import { useState } from "react";
 import type { SprocketParams, CalculatedDimensions } from "../types/sprocket";
 import { CHAIN_TABLE } from "../data/chainTable";
+import { getMaterial } from "../data/materials";
 import { useLang } from "../i18n/LangContext";
 
 interface DownloadModalProps {
@@ -21,6 +22,7 @@ function buildWhatsAppUrl(
   qty: number
 ): string {
   const chain = CHAIN_TABLE.find((c) => c.chainNumber === params.chainNumber);
+  const mat = getMaterial(params.materialKey);
   const lines = [
     `*Garari Maker — Manufacturing Request*`,
     ``,
@@ -38,6 +40,8 @@ function buildWhatsAppUrl(
   if (dims) {
     lines.push(`📐 PD: ${dims.pitchDiameter.toFixed(3)} mm, OD: ${dims.outsideDiameter.toFixed(3)} mm`);
   }
+  lines.push(`🧱 Material: ${mat.labelEn}`);
+  lines.push(`📏 Thickness: ${params.plateThickness} mm`);
   lines.push(``);
   lines.push(`📦 Quantity: ${qty} pcs`);
   lines.push(``);

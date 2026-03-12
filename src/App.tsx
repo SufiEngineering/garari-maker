@@ -6,7 +6,7 @@
 //   Mobile:  Tabbed view switching between parameters and preview
 // ============================================================================
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { saveAs } from "file-saver";
 import type { SprocketParams } from "./types/sprocket";
 import {
@@ -16,8 +16,10 @@ import {
   exportToSVG,
   exportToDXF,
   generateDxfFilename,
+  estimateWeight,
 } from "./engine/sprocketGeometry";
 import { useLang } from "./i18n/LangContext";
+import { readUrlParams, encodeParams } from "./utils/shareLink";
 import ParameterPanel from "./components/ParameterPanel";
 import PreviewPanel from "./components/PreviewPanel";
 import DownloadModal from "./components/DownloadModal";
@@ -38,10 +40,18 @@ const DEFAULT_PARAMS: SprocketParams = {
   keywayEnabled: false,
   keywayWidth: 4,
   keywayDepth: 2.5,
+  materialKey: "mild_steel",
+  plateThickness: 6,
 };
 
+/** Load from URL hash if present, otherwise use defaults */
+function getInitialParams(): SprocketParams {
+  const fromUrl = readUrlParams();
+  return fromUrl ?? DEFAULT_PARAMS;
+}
+
 export default function App() {
-  const [params, setParams] = useState<SprocketParams>(DEFAULT_PARAMS);
+  const [params, setParams] = useState<SprocketParams>(getInitialParams);
   const [showDownloadModal, setShowDownloadModal] = useState(false);
   const [mobileTab, setMobileTab] = useState<"params" | "preview">("params");
   const [quantity, setQuantity] = useState(1);
@@ -52,6 +62,18 @@ export default function App() {
 
   // Validate parameters
   const errors = useMemo(() => validateParams(params), [params]);
+
+  // Estimate weight
+  const weight = useMemo(() => {
+    if (!dims) return null;
+    return estimateWeight(params, dims);
+  }, [params, dims]);
+
+  // Keep URL hash in sync with params for sharing
+  useEffect(() => {
+    const hash = encodeParams(params);
+    window.history.replaceState(null, "", `#${hash}`);
+  }, [params]);
 
   // Build the Maker.js model and generate SVG preview
   const { svgContent } = useMemo(() => {
@@ -165,6 +187,7 @@ export default function App() {
             onExport={handleExport}
             quantity={quantity}
             onQuantityChange={setQuantity}
+            weight={weight}
           />
         </div>
 
@@ -174,7 +197,7 @@ export default function App() {
             mobileTab === "preview" ? "flex" : "hidden"
           } md:flex flex-1 flex-col`}
         >
-          <PreviewPanel svgContent={svgContent} />
+          <PreviewPanel svgContent={svgContent} params={params} dims={dims} />
         </div>
       </div>
 

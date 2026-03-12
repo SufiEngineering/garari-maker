@@ -2,9 +2,12 @@
 // ParameterPanel — Left panel with all sprocket parameter inputs
 // ============================================================================
 
-import type { SprocketParams, CalculatedDimensions, ValidationError } from "../types/sprocket";
+import { useState } from "react";
+import type { SprocketParams, CalculatedDimensions, ValidationError, WeightEstimate } from "../types/sprocket";
 import { CHAIN_TABLE } from "../data/chainTable";
+import { MATERIALS } from "../data/materials";
 import { useLang } from "../i18n/LangContext";
+import { buildShareUrl } from "../utils/shareLink";
 import NumberInput from "./NumberInput";
 import ToggleSwitch from "./ToggleSwitch";
 import SectionHeader from "./SectionHeader";
@@ -17,6 +20,7 @@ interface ParameterPanelProps {
   onExport: () => void;
   quantity: number;
   onQuantityChange: (qty: number) => void;
+  weight: WeightEstimate | null;
 }
 
 /** Helper to find a validation error for a specific field */
@@ -25,7 +29,12 @@ function getError(errors: ValidationError[], field: string): string | undefined 
 }
 
 /** Build WhatsApp message with all sprocket parameters */
-function buildWhatsAppUrl(params: SprocketParams, dims: CalculatedDimensions | null, qty: number): string {
+function buildWhatsAppUrl(
+  params: SprocketParams,
+  dims: CalculatedDimensions | null,
+  qty: number,
+  weight: WeightEstimate | null,
+): string {
   const chain = CHAIN_TABLE.find((c) => c.chainNumber === params.chainNumber);
   const lines = [
     `*Garari Maker Order*`,
@@ -46,6 +55,11 @@ function buildWhatsAppUrl(params: SprocketParams, dims: CalculatedDimensions | n
     lines.push(`📐 PD: ${dims.pitchDiameter.toFixed(3)} mm`);
     lines.push(`📐 OD: ${dims.outsideDiameter.toFixed(3)} mm`);
   }
+  lines.push(`🧱 Material: ${weight?.materialName ?? params.materialKey}`);
+  lines.push(`📏 Thickness: ${params.plateThickness} mm`);
+  if (weight) {
+    lines.push(`⚖️ Est. Weight: ${weight.weightGrams >= 1000 ? (weight.weightGrams / 1000).toFixed(2) + " kg" : weight.weightGrams + " g"}`);
+  }
   lines.push(``);
   lines.push(`📦 Quantity: ${qty}`);
   lines.push(``);
@@ -63,8 +77,10 @@ export default function ParameterPanel({
   onExport,
   quantity,
   onQuantityChange,
+  weight,
 }: ParameterPanelProps) {
-  const { t } = useLang();
+  const { t, isUrdu } = useLang();
+  const [linkCopied, setLinkCopied] = useState(false);
 
   /** Shorthand to update a single parameter */
   const set = <K extends keyof SprocketParams>(
@@ -227,6 +243,35 @@ export default function ParameterPanel({
       )}
 
       {/* ================================================================ */}
+      {/* MATERIAL & THICKNESS */}
+      {/* ================================================================ */}
+      <SectionHeader title={t.sectionMaterial} icon="🧱" />
+
+      <div className="mb-2">
+        <label className="text-sm text-neutral-300">{t.material}</label>
+        <select
+          value={params.materialKey}
+          onChange={(e) => set("materialKey", e.target.value)}
+          className="mt-1 w-full rounded-md border border-red-900/40 bg-[#1a0e0e] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          {MATERIALS.map((m) => (
+            <option key={m.key} value={m.key}>
+              {isUrdu ? m.labelUr : m.labelEn}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <NumberInput
+        label={t.plateThickness}
+        value={params.plateThickness}
+        onChange={(v) => set("plateThickness", v)}
+        min={1}
+        max={50}
+        step={0.5}
+      />
+
+      {/* ================================================================ */}
       {/* CALCULATED DIMENSIONS */}
       {/* ================================================================ */}
       {dims && (
@@ -236,6 +281,37 @@ export default function ParameterPanel({
             <DimRow label={t.pitchDiameter} value={dims.pitchDiameter} />
             <DimRow label={t.outsideDiameter} value={dims.outsideDiameter} />
             <DimRow label={t.rootDiameter} value={dims.rootDiameter} />
+          </div>
+        </>
+      )}
+
+      {/* ================================================================ */}
+      {/* WEIGHT ESTIMATE */}
+      {/* ================================================================ */}
+      {weight && (
+        <>
+          <SectionHeader title={t.sectionWeight} icon="⚖️" />
+          <div className="bg-[#1a0e0e] rounded-lg p-3 text-xs space-y-1.5 border border-red-900/30">
+            <div className="flex justify-between">
+              <span className="text-neutral-500">{t.material}</span>
+              <span className="text-red-300">{isUrdu ? MATERIALS.find(m => m.key === params.materialKey)?.labelUr : weight.materialName}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-neutral-500">{t.netArea}</span>
+              <span className="text-red-300 font-mono">{weight.netArea.toFixed(0)} mm²</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-neutral-500">{t.volume}</span>
+              <span className="text-red-300 font-mono">{weight.volume.toFixed(1)} cm³</span>
+            </div>
+            <div className="flex justify-between border-t border-red-900/30 pt-1.5">
+              <span className="text-neutral-300 font-semibold">{t.estimatedWeight}</span>
+              <span className="text-white font-bold font-mono">
+                {weight.weightGrams >= 1000
+                  ? `${(weight.weightGrams / 1000).toFixed(2)} kg`
+                  : `${weight.weightGrams} g`}
+              </span>
+            </div>
           </div>
         </>
       )}
@@ -278,7 +354,7 @@ export default function ParameterPanel({
             unit={t.quantityUnit}
           />
           <a
-            href={buildWhatsAppUrl(params, dims, quantity)}
+            href={buildWhatsAppUrl(params, dims, quantity, weight)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-2 w-full py-3 mt-2 rounded-lg bg-green-600 hover:bg-green-500 text-white text-sm font-semibold transition-colors"
@@ -289,6 +365,22 @@ export default function ParameterPanel({
             {t.orderViaWhatsApp}
           </a>
         </div>
+
+        {/* ================================================================ */}
+        {/* SHARE LINK */}
+        {/* ================================================================ */}
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(buildShareUrl(params));
+            setLinkCopied(true);
+            setTimeout(() => setLinkCopied(false), 2000);
+          }}
+          className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all
+            bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-300 hover:text-white
+            active:scale-[0.98] cursor-pointer"
+        >
+          {linkCopied ? t.linkCopied : t.shareLink}
+        </button>
 
         <p className="text-[10px] text-neutral-600 text-center">
           {t.freeTool}

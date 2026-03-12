@@ -37,6 +37,21 @@ export interface SprocketParams {
   keywayWidth: number;
   /** Keyway depth/height in mm (radial depth from bore surface) */
   keywayDepth: number;
+
+  // --- Material & Thickness ---
+  /** Material key for weight estimation (e.g. "mild_steel") */
+  materialKey: string;
+  /** Plate thickness in mm */
+  plateThickness: number;
+}
+
+/** Material specification for weight estimation */
+export interface MaterialSpec {
+  key: string;
+  labelEn: string;
+  labelUr: string;
+  /** Density in g/cm³ */
+  density: number;
 }
 
 /** Calculated sprocket dimensions derived from the parameters */
@@ -51,6 +66,18 @@ export interface CalculatedDimensions {
   outsideDiameter: number;
   /** Root Diameter: RD = PD - rollerDiameter */
   rootDiameter: number;
+}
+
+/** Estimated weight result */
+export interface WeightEstimate {
+  /** Net solid area in mm² (after cutouts) */
+  netArea: number;
+  /** Volume in cm³ */
+  volume: number;
+  /** Estimated weight in grams */
+  weightGrams: number;
+  /** Material display name */
+  materialName: string;
 }
 
 /** Validation error for a specific parameter */

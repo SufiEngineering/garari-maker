@@ -27,8 +27,10 @@ import type {
   SprocketParams,
   CalculatedDimensions,
   ValidationError,
+  WeightEstimate,
 } from "../types/sprocket";
 import { getChainSpec } from "../data/chainTable";
+import { getMaterial } from "../data/materials";
 
 // ============================================================================
 // Calculation Helpers
@@ -474,6 +476,126 @@ function assignLayer(m: makerjs.IModel, layer: string): void {
       assignLayer(m.models[key], layer);
     }
   }
+}
+
+// ============================================================================
+// 2D Profile Points — for Three.js 3D extrusion
+// ============================================================================
+
+/**
+ * Return the 2D outline points of the full sprocket including bore, hub,
+ * keyway, and mounting holes — suitable for Three.js Shape/ExtrudeGeometry.
+ *
+ * Returns an object with:
+ *   toothProfile: [x,y][]   — outer tooth contour (closed polygon)
+ *   boreRadius: number       — center bore radius
+ *   hubRadius: number | null — hub circle radius (if enabled)
+ *   mountingHoles: {x,y,r}[] — mounting bolt holes (if enabled)
+ *   keyway: {x1,y1,x2,y2,x3,y3,x4,y4} | null — keyway rectangle
+ */
+export interface SprocketProfile2D {
+  toothProfile: [number, number][];
+  boreRadius: number;
+  hubRadius: number | null;
+  mountingHoles: { cx: number; cy: number; r: number }[];
+  keyway: { halfW: number; innerY: number; outerY: number } | null;
+}
+
+export function getSprocketProfile(params: SprocketParams): SprocketProfile2D | null {
+  const dims = calculateDimensions(params);
+  if (!dims) return null;
+
+  const { pitch, rollerDiameter, pitchDiameter, outsideDiameter } = dims;
+  const N = params.numTeeth;
+
+  // Get tooth outline as [x,y] tuples
+  const makerPts = generateToothPoints(N, pitch, rollerDiameter, pitchDiameter, outsideDiameter);
+  const toothProfile: [number, number][] = makerPts.map((p) => [p[0], p[1]]);
+
+  // Bore
+  const boreRadius = params.boreDiameter / 2;
+
+  // Hub
+  const hubRadius = params.hubEnabled && params.hubDiameter > params.boreDiameter
+    ? params.hubDiameter / 2
+    : null;
+
+  // Mounting holes
+  const mountingHoles: { cx: number; cy: number; r: number }[] = [];
+  if (params.mountingHolesEnabled && params.mountingHoleCount > 0) {
+    const boltR = params.boltCircleDiameter / 2;
+    for (let i = 0; i < params.mountingHoleCount; i++) {
+      const angle = (i * 2 * Math.PI) / params.mountingHoleCount;
+      mountingHoles.push({
+        cx: boltR * Math.cos(angle),
+        cy: boltR * Math.sin(angle),
+        r: params.mountingHoleDiameter / 2,
+      });
+    }
+  }
+
+  // Keyway
+  const keyway = params.keywayEnabled && params.keywayWidth > 0 && params.keywayDepth > 0
+    ? {
+        halfW: params.keywayWidth / 2,
+        innerY: Math.sqrt(Math.max(boreRadius * boreRadius - (params.keywayWidth / 2) ** 2, 0)),
+        outerY: boreRadius + params.keywayDepth,
+      }
+    : null;
+
+  return { toothProfile, boreRadius, hubRadius, mountingHoles, keyway };
+}
+
+// ============================================================================
+// Weight Estimation
+// ============================================================================
+//
+// Calculates approximate weight from 2D geometry:
+//   1. Gross area = π × (OD/2)²
+//   2. Subtract bore, mounting holes, keyway
+//   3. Account for tooth valleys (only ~55% of outer annular ring is solid)
+//   4. Volume = netArea × plateThickness  →  cm³
+//   5. Weight = volume × density
+// ============================================================================
+
+/**
+ * Compute net solid area in mm² and estimate weight.
+ */
+export function estimateWeight(
+  params: SprocketParams,
+  dims: CalculatedDimensions,
+): WeightEstimate {
+  const material = getMaterial(params.materialKey);
+
+  const outerR = dims.outsideDiameter / 2;
+  const rootR = dims.rootDiameter / 2;
+  const boreR = params.boreDiameter / 2;
+
+  const coreArea = Math.PI * rootR * rootR;
+  const toothRingArea = Math.PI * (outerR * outerR - rootR * rootR);
+  const effectiveToothArea = toothRingArea * 0.55;
+
+  let grossArea = coreArea + effectiveToothArea;
+  let cutoutArea = Math.PI * boreR * boreR;
+
+  if (params.mountingHolesEnabled) {
+    const holeR = params.mountingHoleDiameter / 2;
+    cutoutArea += params.mountingHoleCount * Math.PI * holeR * holeR;
+  }
+  if (params.keywayEnabled) {
+    cutoutArea += params.keywayWidth * params.keywayDepth;
+  }
+
+  const netArea = Math.max(0, grossArea - cutoutArea);
+  const volume = (netArea * params.plateThickness) / 1000;
+  const weightGrams = volume * material.density;
+
+  return {
+    netArea: Math.round(netArea * 100) / 100,
+    volume: Math.round(volume * 100) / 100,
+    weightGrams: Math.round(weightGrams),
+    materialName: material.labelEn,
+  };
 }
 
 // ============================================================================

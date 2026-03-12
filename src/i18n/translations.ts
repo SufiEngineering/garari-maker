@@ -83,6 +83,24 @@ export interface Translations {
 
   // Language toggle
   langLabel: string;
+
+  // Material & Weight
+  sectionMaterial: string;
+  material: string;
+  plateThickness: string;
+  sectionWeight: string;
+  estimatedWeight: string;
+  netArea: string;
+  volume: string;
+
+  // Share
+  shareLink: string;
+  linkCopied: string;
+
+  // 2D / 3D toggle
+  view2d: string;
+  view3d: string;
+  previewNote3d: string;
 }
 
 export const translations: Record<Lang, Translations> = {
@@ -153,6 +171,21 @@ export const translations: Record<Lang, Translations> = {
     manufacturingCta:
       "Tell us the quantity, and we'll make and ship your sprockets.",
     langLabel: "اردو",
+
+    sectionMaterial: "Material & Thickness",
+    material: "Material",
+    plateThickness: "Plate Thickness",
+    sectionWeight: "Weight Estimate",
+    estimatedWeight: "Estimated Weight",
+    netArea: "Net Area",
+    volume: "Volume",
+
+    shareLink: "🔗 Copy Share Link",
+    linkCopied: "✅ Link Copied!",
+
+    view2d: "2D",
+    view3d: "3D",
+    previewNote3d: "3D preview — drag to rotate, scroll to zoom",
   },
 
   ur: {
@@ -223,5 +256,20 @@ export const translations: Record<Lang, Translations> = {
     manufacturingCta:
       "تعداد بتائیں، ہم آپ کی گراریاں بنا کر بھیج دیں گے۔",
     langLabel: "English",
+
+    sectionMaterial: "مٹیریل اور موٹائی",
+    material: "مٹیریل",
+    plateThickness: "پلیٹ موٹائی",
+    sectionWeight: "وزن کا اندازہ",
+    estimatedWeight: "تخمینہ وزن",
+    netArea: "خالص رقبہ",
+    volume: "حجم",
+
+    shareLink: "🔗 شیئر لنک کاپی کریں",
+    linkCopied: "✅ لنک کاپی ہو گیا!",
+
+    view2d: "2D",
+    view3d: "3D",
+    previewNote3d: "3D پیش نظارہ — گھمانے کے لیے کھینچیں، زوم کے لیے اسکرول کریں",
   },
 };
