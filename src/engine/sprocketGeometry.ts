@@ -634,7 +634,7 @@ export function exportToDXF(model: makerjs.IModel): string {
   return makerjs.exporter.toDXF(model, {
     units: makerjs.unitType.Millimeter,
     accuracy: 0.001,
-    usePOLYLINE: false,
+    usePOLYLINE: true,
     layerOptions: {
       outline: { color: makerjs.exporter.colors.white },
       bore: { color: makerjs.exporter.colors.yellow },
