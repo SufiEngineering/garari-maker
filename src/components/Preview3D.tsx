@@ -6,7 +6,8 @@ import { useRef, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import type { SprocketParams, CalculatedDimensions } from "../types/sprocket";
-import { getSprocketProfile } from "../engine/sprocketGeometry";
+import { buildSprocketGeometry } from "../engine/sprocketMesh";
+import { useSettings } from "../i18n/SettingsContext";
 
 // ---------------------------------------------------------------------------
 // Material colours
@@ -35,6 +36,7 @@ interface Preview3DProps {
 // Component
 // ---------------------------------------------------------------------------
 export default function Preview3D({ params, dims }: Preview3DProps) {
+  const { theme } = useSettings();
   const containerRef = useRef<HTMLDivElement>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -43,72 +45,10 @@ export default function Preview3D({ params, dims }: Preview3DProps) {
   const meshRef = useRef<THREE.Mesh | null>(null);
   const frameIdRef = useRef<number>(0);
 
-  // Build Three.js geometry from sprocket profile
+  // Build Three.js geometry from sprocket profile (shared with STL export)
   const geometry = useMemo(() => {
     if (!dims) return null;
-    const profile = getSprocketProfile(params);
-    if (!profile || profile.toothProfile.length < 3) return null;
-
-    // Outer tooth shape
-    const shape = new THREE.Shape();
-    const pts = profile.toothProfile;
-    shape.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length; i++) {
-      shape.lineTo(pts[i][0], pts[i][1]);
-    }
-    shape.closePath();
-
-    // Bore hole (always present)
-    const boreHole = new THREE.Path();
-    const SEGS = 64;
-    for (let i = 0; i <= SEGS; i++) {
-      const a = (i / SEGS) * Math.PI * 2;
-      const x = profile.boreRadius * Math.cos(a);
-      const y = profile.boreRadius * Math.sin(a);
-      if (i === 0) boreHole.moveTo(x, y);
-      else boreHole.lineTo(x, y);
-    }
-    shape.holes.push(boreHole);
-
-    // Mounting holes
-    for (const h of profile.mountingHoles) {
-      const holePath = new THREE.Path();
-      for (let i = 0; i <= SEGS; i++) {
-        const a = (i / SEGS) * Math.PI * 2;
-        const x = h.cx + h.r * Math.cos(a);
-        const y = h.cy + h.r * Math.sin(a);
-        if (i === 0) holePath.moveTo(x, y);
-        else holePath.lineTo(x, y);
-      }
-      shape.holes.push(holePath);
-    }
-
-    // Keyway slot
-    if (profile.keyway) {
-      const k = profile.keyway;
-      const kw = new THREE.Path();
-      kw.moveTo(-k.halfW, k.innerY);
-      kw.lineTo(-k.halfW, k.outerY);
-      kw.lineTo(k.halfW, k.outerY);
-      kw.lineTo(k.halfW, k.innerY);
-      kw.closePath();
-      shape.holes.push(kw);
-    }
-
-    // Extrude
-    const depth = params.plateThickness || 6;
-    const extrudeSettings: THREE.ExtrudeGeometryOptions = {
-      depth,
-      bevelEnabled: true,
-      bevelThickness: Math.min(0.3, depth * 0.05),
-      bevelSize: Math.min(0.3, depth * 0.05),
-      bevelSegments: 2,
-      curveSegments: 1,
-    };
-
-    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
-    geo.center();
-    return geo;
+    return buildSprocketGeometry(params);
   }, [params, dims]);
 
   // ---------------------------------------------------------------------------
@@ -121,7 +61,7 @@ export default function Preview3D({ params, dims }: Preview3DProps) {
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x0f0808, 1);
+    renderer.setClearColor(0x0f0808, 1); // theme effect below sets the real colour
     renderer.shadowMap.enabled = true;
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -185,6 +125,14 @@ export default function Preview3D({ params, dims }: Preview3DProps) {
       }
     };
   }, []);
+
+  // Keep clear colour in sync with the active theme
+  useEffect(() => {
+    rendererRef.current?.setClearColor(
+      theme === "light" ? 0xf4f1ee : 0x0f0808,
+      1
+    );
+  }, [theme]);
 
   // ---------------------------------------------------------------------------
   // Update mesh when geometry or material changes

@@ -1,6 +1,44 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;700&display=swap');
 @import "tailwindcss";
 
+/* ==========================================================================
+   Theme palettes — consumed via Tailwind arbitrary values e.g. bg-[var(--c-bg)]
+   The active theme class lives on <html> (set by SettingsContext).
+   ========================================================================== */
+/* Dark is the default palette (applies to :root and explicit .theme-dark). */
+:root,
+.theme-dark {
+  --c-bg: #0f0808;
+  --c-surface: #140a0a;
+  --c-surface-2: #1a0e0e;
+  --c-surface-3: #120909;
+  --c-text: #ffffff;
+  --c-text-2: #d4d4d4;
+  --c-text-3: #a3a3a3;
+  --c-text-muted: #737373;
+  --c-text-faint: #525252;
+  --c-border: rgba(127, 29, 29, 0.4);
+  --c-accent: #f87171;
+  --c-accent-2: #fca5a5;
+  --c-grid: rgba(220, 38, 38, 0.06);
+}
+/* Light overrides — must come last so equal-specificity wins over :root. */
+.theme-light {
+  --c-bg: #f4f1ee;
+  --c-surface: #ffffff;
+  --c-surface-2: #faf6f4;
+  --c-surface-3: #f0eae7;
+  --c-text: #1a1010;
+  --c-text-2: #3f3030;
+  --c-text-3: #57494a;
+  --c-text-muted: #6b5d5d;
+  --c-text-faint: #9b8e8e;
+  --c-border: rgba(180, 70, 70, 0.28);
+  --c-accent: #dc2626;
+  --c-accent-2: #b91c1c;
+  --c-grid: rgba(180, 50, 50, 0.08);
+}
+
 .font-urdu {
   font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', serif;
 }
@@ -10,7 +48,7 @@
   width: 6px;
 }
 .param-panel::-webkit-scrollbar-track {
-  background: #1c1017;
+  background: var(--c-surface-2);
 }
 .param-panel::-webkit-scrollbar-thumb {
   background: #6b3a3a;
@@ -33,9 +71,42 @@
   fill: none;
 }
 
+/* Spec sheet embedded SVG */
+.spec-svg svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+.spec-svg svg path,
+.spec-svg svg circle,
+.spec-svg svg line {
+  fill: none;
+}
+
 /* Subtle grid pattern on preview background */
 .preview-bg {
   background-image:
-    radial-gradient(circle, rgba(220,38,38,0.06) 1px, transparent 1px);
+    radial-gradient(circle, var(--c-grid) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/* ==========================================================================
+   Print — spec sheet only
+   ========================================================================== */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #spec-sheet,
+  #spec-sheet * {
+    visibility: visible;
+  }
+  #spec-sheet {
+    position: absolute;
+    inset: 0;
+    background: #ffffff;
+    color: #000000;
+    padding: 24px;
+  }
 }

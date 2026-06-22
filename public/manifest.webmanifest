@@ -1,0 +1,19 @@
+{
+  "name": "Garari Maker — Sprocket DXF Generator",
+  "short_name": "Garari Maker",
+  "description": "Free precision sprocket & gear DXF generator by Sufi Engineering. Works offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0f0808",
+  "theme_color": "#0f0808",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

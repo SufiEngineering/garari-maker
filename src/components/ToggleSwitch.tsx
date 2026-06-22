@@ -15,7 +15,7 @@ export default function ToggleSwitch({
 }: ToggleSwitchProps) {
   return (
     <label className="flex items-center justify-between cursor-pointer py-1">
-      <span className="text-sm font-medium text-neutral-200">{label}</span>
+      <span className="text-sm font-medium text-[var(--c-text-2)]">{label}</span>
       <div className="relative">
         <input
           type="checkbox"

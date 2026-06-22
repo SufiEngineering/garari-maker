@@ -2,15 +2,27 @@
 // Sprocket Parameter Types
 // ============================================================================
 
+/** Chain standard family */
+export type ChainStandard = "ansi" | "iso";
+
+/** Lightening (weight-reduction) cutout pattern */
+export type LighteningPattern = "none" | "holes" | "spokes";
+
 /** All user-configurable parameters for sprocket generation */
 export interface SprocketParams {
   // --- Chain ---
-  /** ANSI chain number (e.g. 25, 35, 40, 50, 60, 80, 100) */
+  /** Chain standard family (ANSI imperial or ISO/metric DIN 8187) */
+  standard: ChainStandard;
+  /** Chain number within the standard (e.g. 40 for ANSI #40, 8 for ISO 08B) */
   chainNumber: number;
+  /** Number of chain strands (1 = simplex, 2 = duplex, 3 = triplex) */
+  strandCount: number;
 
   // --- Teeth ---
   /** Number of teeth on the sprocket (8–120) */
   numTeeth: number;
+  /** Idler / plain-rim variant — a smooth rim with no shaft features */
+  idler: boolean;
 
   // --- Bore / Hub ---
   /** Center bore hole diameter in mm */
@@ -19,6 +31,14 @@ export interface SprocketParams {
   hubEnabled: boolean;
   /** Hub outer diameter in mm (must be > boreDiameter) */
   hubDiameter: number;
+  /** Hub projects from both faces (affects weight & 3D) */
+  hubDoubleSided: boolean;
+  /** Hub projection length per side in mm (used for weight & 3D) */
+  hubLength: number;
+  /** Radial set-screw hole through the hub (spec + 3D only) */
+  setScrewEnabled: boolean;
+  /** Set-screw tapped hole diameter in mm */
+  setScrewDiameter: number;
 
   // --- Mounting Holes ---
   /** Whether to include bolt-circle mounting holes */
@@ -38,6 +58,14 @@ export interface SprocketParams {
   /** Keyway depth/height in mm (radial depth from bore surface) */
   keywayDepth: number;
 
+  // --- Lightening (weight reduction) ---
+  /** Lightening cutout pattern */
+  lighteningPattern: LighteningPattern;
+  /** Number of lightening holes / spokes */
+  lighteningCount: number;
+  /** Diameter (holes) or width (spokes) of the cutout in mm */
+  lighteningSize: number;
+
   // --- Material & Thickness ---
   /** Material key for weight estimation (e.g. "mild_steel") */
   materialKey: string;
@@ -50,8 +78,11 @@ export interface MaterialSpec {
   key: string;
   labelEn: string;
   labelUr: string;
+  labelAr: string;
   /** Density in g/cm³ */
   density: number;
+  /** Approximate price per kg in USD (for rough cost estimate) */
+  pricePerKg: number;
 }
 
 /** Calculated sprocket dimensions derived from the parameters */
@@ -78,10 +109,35 @@ export interface WeightEstimate {
   weightGrams: number;
   /** Material display name */
   materialName: string;
+  /** Rough material cost in USD */
+  costUsd: number;
 }
 
-/** Validation error for a specific parameter */
+/** Severity of a validation entry */
+export type Severity = "error" | "warning";
+
+/** Validation issue for a specific parameter */
 export interface ValidationError {
   field: string;
   message: string;
+  severity?: Severity;
+}
+
+/** A saved design stored locally */
+export interface SavedDesign {
+  id: string;
+  name: string;
+  params: SprocketParams;
+  savedAt: number;
+}
+
+/** Two-sprocket drive calculation result */
+export interface DriveResult {
+  ratio: number;
+  drivenRpm: number;
+  pitchMm: number;
+  /** Chain length in number of pitches (links), rounded up to even */
+  chainLinks: number;
+  /** Resulting center distance in mm for the rounded link count */
+  centerDistanceMm: number;
 }

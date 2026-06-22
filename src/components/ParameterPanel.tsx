@@ -3,14 +3,24 @@
 // ============================================================================
 
 import { useState } from "react";
-import type { SprocketParams, CalculatedDimensions, ValidationError, WeightEstimate } from "../types/sprocket";
-import { CHAIN_TABLE } from "../data/chainTable";
+import type {
+  SprocketParams,
+  CalculatedDimensions,
+  ValidationError,
+  WeightEstimate,
+  ChainStandard,
+  LighteningPattern,
+} from "../types/sprocket";
+import { CHAIN_TABLE, getChainsByStandard } from "../data/chainTable";
 import { MATERIALS } from "../data/materials";
 import { useLang } from "../i18n/LangContext";
 import { buildShareUrl } from "../utils/shareLink";
+import { hasBlockingErrors, LAYER_COLORS, DIM_COLORS } from "../engine/sprocketGeometry";
 import NumberInput from "./NumberInput";
 import ToggleSwitch from "./ToggleSwitch";
 import SectionHeader from "./SectionHeader";
+import SavedDesignsPanel from "./SavedDesignsPanel";
+import QRCodeView from "./QRCode";
 
 interface ParameterPanelProps {
   params: SprocketParams;
@@ -18,14 +28,17 @@ interface ParameterPanelProps {
   errors: ValidationError[];
   onChange: (params: SprocketParams) => void;
   onExport: () => void;
+  onExportStl: () => void;
+  onExportNested: (count: number, gap: number) => void;
+  onPrintSpec: () => void;
   quantity: number;
   onQuantityChange: (qty: number) => void;
   weight: WeightEstimate | null;
 }
 
-/** Helper to find a validation error for a specific field */
+/** Helper to find a blocking error (not a warning) for a field. */
 function getError(errors: ValidationError[], field: string): string | undefined {
-  return errors.find((e) => e.field === field)?.message;
+  return errors.find((e) => e.field === field && e.severity !== "warning")?.message;
 }
 
 /** Build WhatsApp message with all sprocket parameters */
@@ -33,19 +46,24 @@ function buildWhatsAppUrl(
   params: SprocketParams,
   dims: CalculatedDimensions | null,
   qty: number,
-  weight: WeightEstimate | null,
+  weight: WeightEstimate | null
 ): string {
-  const chain = CHAIN_TABLE.find((c) => c.chainNumber === params.chainNumber);
+  const chain = CHAIN_TABLE.find(
+    (c) => c.standard === params.standard && c.chainNumber === params.chainNumber
+  );
   const lines = [
     `*Garari Maker Order*`,
     ``,
-    `🔗 Chain: #${params.chainNumber} (${chain?.label ?? ""})`,
+    `🔗 Chain: ${chain?.label ?? params.chainNumber} (${params.standard.toUpperCase()})`,
     `🦷 Teeth: ${params.numTeeth}`,
+    `🧵 Strands: ${params.strandCount}`,
     `⭕ Bore Diameter: ${params.boreDiameter} mm`,
   ];
   if (params.hubEnabled) lines.push(`Hub Diameter: ${params.hubDiameter} mm`);
   if (params.keywayEnabled)
     lines.push(`🔑 Keyway: ${params.keywayWidth}×${params.keywayDepth} mm`);
+  if (params.setScrewEnabled)
+    lines.push(`🔩 Set-screw: ⌀${params.setScrewDiameter} mm`);
   if (params.mountingHolesEnabled)
     lines.push(
       `🕳️ Mounting Holes: ${params.mountingHoleCount}× ⌀${params.mountingHoleDiameter} mm on BCD ${params.boltCircleDiameter} mm`
@@ -58,7 +76,9 @@ function buildWhatsAppUrl(
   lines.push(`🧱 Material: ${weight?.materialName ?? params.materialKey}`);
   lines.push(`📏 Thickness: ${params.plateThickness} mm`);
   if (weight) {
-    lines.push(`⚖️ Est. Weight: ${weight.weightGrams >= 1000 ? (weight.weightGrams / 1000).toFixed(2) + " kg" : weight.weightGrams + " g"}`);
+    lines.push(
+      `⚖️ Est. Weight: ${weight.weightGrams >= 1000 ? (weight.weightGrams / 1000).toFixed(2) + " kg" : weight.weightGrams + " g"}`
+    );
   }
   lines.push(``);
   lines.push(`📦 Quantity: ${qty}`);
@@ -75,14 +95,25 @@ export default function ParameterPanel({
   errors,
   onChange,
   onExport,
+  onExportStl,
+  onExportNested,
+  onPrintSpec,
   quantity,
   onQuantityChange,
   weight,
 }: ParameterPanelProps) {
-  const { t, isUrdu } = useLang();
+  const { t, lang } = useLang();
+  const isUrdu = lang === "ur";
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showQr, setShowQr] = useState(false);
+  const [nestCount, setNestCount] = useState(4);
+  const [nestGap, setNestGap] = useState(5);
+  const blocking = hasBlockingErrors(errors);
+  const warnings = errors.filter((e) => e.severity === "warning");
 
-  /** Shorthand to update a single parameter */
+  const matLabel = (m: (typeof MATERIALS)[number]) =>
+    lang === "ur" ? m.labelUr : lang === "ar" ? m.labelAr : m.labelEn;
+
   const set = <K extends keyof SprocketParams>(
     key: K,
     value: SprocketParams[K]
@@ -90,22 +121,46 @@ export default function ParameterPanel({
     onChange({ ...params, [key]: value });
   };
 
-  return (
-    <div className="param-panel w-full h-full overflow-y-auto bg-[#140a0a] border-r border-red-900/30 p-3 sm:p-4 flex flex-col">
+  const onStandardChange = (s: ChainStandard) => {
+    const list = getChainsByStandard(s);
+    const stillValid = list.some((c) => c.chainNumber === params.chainNumber);
+    onChange({
+      ...params,
+      standard: s,
+      chainNumber: stillValid
+        ? params.chainNumber
+        : list[Math.min(2, list.length - 1)].chainNumber,
+    });
+  };
 
-      {/* ================================================================ */}
-      {/* CHAIN PARAMETERS */}
-      {/* ================================================================ */}
+  const chains = getChainsByStandard(params.standard);
+
+  return (
+    <div className="param-panel w-full h-full overflow-y-auto bg-[var(--c-surface)] border-r border-[var(--c-border)] p-3 sm:p-4 flex flex-col">
+
+      {/* CHAIN */}
       <SectionHeader title={t.sectionChain} icon="🔗" />
 
       <div className="mb-2">
-        <label className="text-sm text-neutral-300">{t.chainNumber}</label>
+        <label className="text-sm text-[var(--c-text-2)]">{t.chainStandard}</label>
+        <select
+          value={params.standard}
+          onChange={(e) => onStandardChange(e.target.value as ChainStandard)}
+          className="mt-1 w-full rounded-md border border-[var(--c-border)] bg-[var(--c-surface-2)] px-3 py-2 text-sm text-[var(--c-text)] focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          <option value="ansi">{t.standardAnsi}</option>
+          <option value="iso">{t.standardIso}</option>
+        </select>
+      </div>
+
+      <div className="mb-2">
+        <label className="text-sm text-[var(--c-text-2)]">{t.chainNumber}</label>
         <select
           value={params.chainNumber}
           onChange={(e) => set("chainNumber", Number(e.target.value))}
-          className="mt-1 w-full rounded-md border border-red-900/40 bg-[#1a0e0e] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="mt-1 w-full rounded-md border border-[var(--c-border)] bg-[var(--c-surface-2)] px-3 py-2 text-sm text-[var(--c-text)] focus:outline-none focus:ring-2 focus:ring-red-500"
         >
-          {CHAIN_TABLE.map((c) => (
+          {chains.map((c) => (
             <option key={c.chainNumber} value={c.chainNumber}>
               {c.label}
             </option>
@@ -113,19 +168,26 @@ export default function ParameterPanel({
         </select>
       </div>
 
-      {/* Display chain info */}
       {dims && (
-        <div className="text-xs text-neutral-500 space-y-0.5 mb-2 ps-1">
-          <p>{t.pitch}: <span className="text-neutral-300">{dims.pitch.toFixed(3)} mm</span></p>
-          <p>{t.rollerDiameter}: <span className="text-neutral-300">{dims.rollerDiameter.toFixed(2)} mm</span></p>
+        <div className="text-xs text-[var(--c-text-muted)] space-y-0.5 mb-2 ps-1">
+          <p>{t.pitch}: <span className="text-[var(--c-text-2)]">{dims.pitch.toFixed(3)} mm</span></p>
+          <p>{t.rollerDiameter}: <span className="text-[var(--c-text-2)]">{dims.rollerDiameter.toFixed(2)} mm</span></p>
         </div>
       )}
 
-      {/* ================================================================ */}
-      {/* TEETH */}
-      {/* ================================================================ */}
-      <SectionHeader title={t.sectionTeeth} icon="🦷" />
+      <NumberInput
+        label={t.strandCount}
+        value={params.strandCount}
+        onChange={(v) => set("strandCount", Math.max(1, Math.min(3, Math.round(v))))}
+        min={1}
+        max={3}
+        step={1}
+        unit=""
+        tooltip="1 = simplex, 2 = duplex, 3 = triplex"
+      />
 
+      {/* TEETH */}
+      <SectionHeader title={t.sectionTeeth} icon="🦷" color={LAYER_COLORS.outline} />
       <NumberInput
         label={t.numberOfTeeth}
         value={params.numTeeth}
@@ -136,223 +198,181 @@ export default function ParameterPanel({
         unit=""
         error={getError(errors, "numTeeth")}
       />
+      <ToggleSwitch
+        label={t.idlerVariant}
+        checked={params.idler}
+        onChange={(v) => set("idler", v)}
+      />
 
-      {/* ================================================================ */}
       {/* BORE / HUB */}
-      {/* ================================================================ */}
-      <SectionHeader title={t.sectionBoreHub} icon="⭕" />
-
+      <SectionHeader title={t.sectionBoreHub} icon="⭕" color={LAYER_COLORS.bore} />
       <NumberInput
         label={t.boreDiameter}
         value={params.boreDiameter}
         onChange={(v) => set("boreDiameter", v)}
         min={0.1}
         step={0.5}
+        length
         error={getError(errors, "boreDiameter")}
       />
-
-      <ToggleSwitch
-        label={t.hubCircle}
-        checked={params.hubEnabled}
-        onChange={(v) => set("hubEnabled", v)}
-      />
-
+      <ToggleSwitch label={t.hubCircle} checked={params.hubEnabled} onChange={(v) => set("hubEnabled", v)} />
       {params.hubEnabled && (
-        <NumberInput
-          label={t.hubDiameter}
-          value={params.hubDiameter}
-          onChange={(v) => set("hubDiameter", v)}
-          min={0.1}
-          step={0.5}
-          error={getError(errors, "hubDiameter")}
-        />
+        <div className="ps-2 border-s-2" style={{ borderColor: LAYER_COLORS.hub }}>
+          <NumberInput label={t.hubDiameter} value={params.hubDiameter} onChange={(v) => set("hubDiameter", v)} min={0.1} step={0.5} length error={getError(errors, "hubDiameter")} />
+          <NumberInput label={t.hubLength} value={params.hubLength} onChange={(v) => set("hubLength", Math.max(0, v))} min={0} step={1} length tooltip="Projection beyond the plate (for weight & 3D)" />
+          <ToggleSwitch label={t.hubDoubleSided} checked={params.hubDoubleSided} onChange={(v) => set("hubDoubleSided", v)} />
+        </div>
       )}
 
-      {/* ================================================================ */}
       {/* MOUNTING HOLES */}
-      {/* ================================================================ */}
-      <SectionHeader title={t.sectionMountingHoles} icon="🕳️" />
-
-      <ToggleSwitch
-        label={t.enableBoltHoles}
-        checked={params.mountingHolesEnabled}
-        onChange={(v) => set("mountingHolesEnabled", v)}
-      />
-
+      <SectionHeader title={t.sectionMountingHoles} icon="🕳️" color={LAYER_COLORS.holes} />
+      <ToggleSwitch label={t.enableBoltHoles} checked={params.mountingHolesEnabled} onChange={(v) => set("mountingHolesEnabled", v)} />
       {params.mountingHolesEnabled && (
         <>
-          <NumberInput
-            label={t.numberOfHoles}
-            value={params.mountingHoleCount}
-            onChange={(v) => set("mountingHoleCount", Math.round(v))}
-            min={2}
-            max={12}
-            step={1}
-            unit=""
-            error={getError(errors, "mountingHoleCount")}
-          />
-          <NumberInput
-            label={t.holeDiameter}
-            value={params.mountingHoleDiameter}
-            onChange={(v) => set("mountingHoleDiameter", v)}
-            min={0.1}
-            step={0.5}
-            error={getError(errors, "mountingHoleDiameter")}
-          />
-          <NumberInput
-            label={t.boltCircleDiameter}
-            value={params.boltCircleDiameter}
-            onChange={(v) => set("boltCircleDiameter", v)}
-            min={0.1}
-            step={0.5}
-            error={getError(errors, "boltCircleDiameter")}
-          />
+          <NumberInput label={t.numberOfHoles} value={params.mountingHoleCount} onChange={(v) => set("mountingHoleCount", Math.round(v))} min={2} max={12} step={1} unit="" error={getError(errors, "mountingHoleCount")} />
+          <NumberInput label={t.holeDiameter} value={params.mountingHoleDiameter} onChange={(v) => set("mountingHoleDiameter", v)} min={0.1} step={0.5} length error={getError(errors, "mountingHoleDiameter")} />
+          <NumberInput label={t.boltCircleDiameter} value={params.boltCircleDiameter} onChange={(v) => set("boltCircleDiameter", v)} min={0.1} step={0.5} length tooltip="Diameter of the circle the bolt-hole centers lie on (BCD)" error={getError(errors, "boltCircleDiameter")} />
         </>
       )}
 
-      {/* ================================================================ */}
       {/* KEYWAY */}
-      {/* ================================================================ */}
-      <SectionHeader title={t.sectionKeyway} icon="🔑" />
-
-      <ToggleSwitch
-        label={t.enableKeyway}
-        checked={params.keywayEnabled}
-        onChange={(v) => set("keywayEnabled", v)}
-      />
-
+      <SectionHeader title={t.sectionKeyway} icon="🔑" color={LAYER_COLORS.bore} />
+      <ToggleSwitch label={t.enableKeyway} checked={params.keywayEnabled} onChange={(v) => set("keywayEnabled", v)} />
       {params.keywayEnabled && (
         <>
-          <NumberInput
-            label={t.keywayWidth}
-            value={params.keywayWidth}
-            onChange={(v) => set("keywayWidth", v)}
-            min={0.1}
-            step={0.5}
-            error={getError(errors, "keywayWidth")}
-          />
-          <NumberInput
-            label={t.keywayDepth}
-            value={params.keywayDepth}
-            onChange={(v) => set("keywayDepth", v)}
-            min={0.1}
-            step={0.5}
-            error={getError(errors, "keywayDepth")}
-          />
+          <NumberInput label={t.keywayWidth} value={params.keywayWidth} onChange={(v) => set("keywayWidth", v)} min={0.1} step={0.5} length error={getError(errors, "keywayWidth")} />
+          <NumberInput label={t.keywayDepth} value={params.keywayDepth} onChange={(v) => set("keywayDepth", v)} min={0.1} step={0.5} length error={getError(errors, "keywayDepth")} />
         </>
       )}
 
-      {/* ================================================================ */}
-      {/* MATERIAL & THICKNESS */}
-      {/* ================================================================ */}
-      <SectionHeader title={t.sectionMaterial} icon="🧱" />
-
+      {/* LIGHTENING */}
+      <SectionHeader title={t.sectionLightening} icon="🪶" color={LAYER_COLORS.lightening} />
       <div className="mb-2">
-        <label className="text-sm text-neutral-300">{t.material}</label>
+        <label className="text-sm text-[var(--c-text-2)]">{t.lighteningPattern}</label>
+        <select
+          value={params.lighteningPattern}
+          onChange={(e) => set("lighteningPattern", e.target.value as LighteningPattern)}
+          className="mt-1 w-full rounded-md border border-[var(--c-border)] bg-[var(--c-surface-2)] px-3 py-2 text-sm text-[var(--c-text)] focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          <option value="none">{t.patternNone}</option>
+          <option value="holes">{t.patternHoles}</option>
+          <option value="spokes">{t.patternSpokes}</option>
+        </select>
+      </div>
+      {params.lighteningPattern !== "none" && (
+        <>
+          <NumberInput label={t.lighteningCount} value={params.lighteningCount} onChange={(v) => set("lighteningCount", Math.max(1, Math.round(v)))} min={1} max={24} step={1} unit="" />
+          <NumberInput label={t.lighteningSize} value={params.lighteningSize} onChange={(v) => set("lighteningSize", Math.max(1, v))} min={1} step={0.5} length />
+        </>
+      )}
+
+      {/* ADVANCED — set screw */}
+      <SectionHeader title={t.sectionAdvanced} icon="🔧" />
+      <ToggleSwitch label={t.setScrew} checked={params.setScrewEnabled} onChange={(v) => set("setScrewEnabled", v)} />
+      {params.setScrewEnabled && (
+        <NumberInput label={t.setScrewDiameter} value={params.setScrewDiameter} onChange={(v) => set("setScrewDiameter", v)} min={1} step={0.5} length tooltip="Radial tapped hole through the hub (shown in order spec)" />
+      )}
+
+      {/* MATERIAL & THICKNESS */}
+      <SectionHeader title={t.sectionMaterial} icon="🧱" />
+      <div className="mb-2">
+        <label className="text-sm text-[var(--c-text-2)]">{t.material}</label>
         <select
           value={params.materialKey}
           onChange={(e) => set("materialKey", e.target.value)}
-          className="mt-1 w-full rounded-md border border-red-900/40 bg-[#1a0e0e] px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-red-500"
+          className="mt-1 w-full rounded-md border border-[var(--c-border)] bg-[var(--c-surface-2)] px-3 py-2 text-sm text-[var(--c-text)] focus:outline-none focus:ring-2 focus:ring-red-500"
         >
           {MATERIALS.map((m) => (
-            <option key={m.key} value={m.key}>
-              {isUrdu ? m.labelUr : m.labelEn}
-            </option>
+            <option key={m.key} value={m.key}>{matLabel(m)}</option>
           ))}
         </select>
       </div>
+      <NumberInput label={t.plateThickness} value={params.plateThickness} onChange={(v) => set("plateThickness", v)} min={1} max={50} step={0.5} length />
 
-      <NumberInput
-        label={t.plateThickness}
-        value={params.plateThickness}
-        onChange={(v) => set("plateThickness", v)}
-        min={1}
-        max={50}
-        step={0.5}
-      />
-
-      {/* ================================================================ */}
-      {/* CALCULATED DIMENSIONS */}
-      {/* ================================================================ */}
+      {/* CALCULATED */}
       {dims && (
         <>
           <SectionHeader title={t.sectionCalculated} icon="📐" />
-          <div className="bg-[#1a0e0e] rounded-lg p-3 text-xs space-y-1.5 border border-red-900/30">
-            <DimRow label={t.pitchDiameter} value={dims.pitchDiameter} />
-            <DimRow label={t.outsideDiameter} value={dims.outsideDiameter} />
-            <DimRow label={t.rootDiameter} value={dims.rootDiameter} />
+          <div className="bg-[var(--c-surface-2)] rounded-lg p-3 text-xs space-y-1.5 border border-[var(--c-border)]">
+            <DimRow label={t.pitchDiameter} value={dims.pitchDiameter} color={DIM_COLORS.pd} />
+            <DimRow label={t.outsideDiameter} value={dims.outsideDiameter} color={DIM_COLORS.od} />
+            <DimRow label={t.rootDiameter} value={dims.rootDiameter} color={DIM_COLORS.rd} />
           </div>
         </>
       )}
 
-      {/* ================================================================ */}
-      {/* WEIGHT ESTIMATE */}
-      {/* ================================================================ */}
+      {/* WEIGHT + COST */}
       {weight && (
         <>
           <SectionHeader title={t.sectionWeight} icon="⚖️" />
-          <div className="bg-[#1a0e0e] rounded-lg p-3 text-xs space-y-1.5 border border-red-900/30">
+          <div className="bg-[var(--c-surface-2)] rounded-lg p-3 text-xs space-y-1.5 border border-[var(--c-border)]">
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t.material}</span>
-              <span className="text-red-300">{isUrdu ? MATERIALS.find(m => m.key === params.materialKey)?.labelUr : weight.materialName}</span>
+              <span className="text-[var(--c-text-muted)]">{t.material}</span>
+              <span className="text-[var(--c-accent-2)]">{isUrdu ? MATERIALS.find((m) => m.key === params.materialKey)?.labelUr : weight.materialName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t.netArea}</span>
-              <span className="text-red-300 font-mono">{weight.netArea.toFixed(0)} mm²</span>
+              <span className="text-[var(--c-text-muted)]">{t.netArea}</span>
+              <span className="text-[var(--c-accent-2)] font-mono">{weight.netArea.toFixed(0)} mm²</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-neutral-500">{t.volume}</span>
-              <span className="text-red-300 font-mono">{weight.volume.toFixed(1)} cm³</span>
+              <span className="text-[var(--c-text-muted)]">{t.volume}</span>
+              <span className="text-[var(--c-accent-2)] font-mono">{weight.volume.toFixed(1)} cm³</span>
             </div>
-            <div className="flex justify-between border-t border-red-900/30 pt-1.5">
-              <span className="text-neutral-300 font-semibold">{t.estimatedWeight}</span>
-              <span className="text-white font-bold font-mono">
-                {weight.weightGrams >= 1000
-                  ? `${(weight.weightGrams / 1000).toFixed(2)} kg`
-                  : `${weight.weightGrams} g`}
+            <div className="flex justify-between border-t border-[var(--c-border)] pt-1.5">
+              <span className="text-[var(--c-text-2)] font-semibold">{t.estimatedWeight}</span>
+              <span className="text-[var(--c-text)] font-bold font-mono">
+                {weight.weightGrams >= 1000 ? `${(weight.weightGrams / 1000).toFixed(2)} kg` : `${weight.weightGrams} g`}
               </span>
             </div>
           </div>
         </>
       )}
 
-      {/* ================================================================ */}
-      {/* EXPORT BUTTON */}
-      {/* ================================================================ */}
+      {/* WARNINGS */}
+      {warnings.length > 0 && (
+        <>
+          <SectionHeader title={t.warnings} icon="⚠️" />
+          <ul className="bg-amber-950/20 border border-amber-700/40 rounded-lg p-3 text-xs space-y-1.5 list-disc list-inside text-amber-300/90">
+            {warnings.map((w, i) => <li key={i}>{w.message}</li>)}
+          </ul>
+        </>
+      )}
+
+      {/* SAVED DESIGNS */}
+      <SectionHeader title={t.sectionPresets} icon="💾" />
+      <SavedDesignsPanel params={params} onLoad={onChange} />
+
+      {/* ACTIONS */}
       <div className="mt-auto pt-4 space-y-3">
         <button
           onClick={onExport}
-          disabled={errors.length > 0}
-          className="w-full py-3 rounded-lg font-semibold text-sm transition-all
-            bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/30
-            disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:shadow-none
-            active:scale-[0.98] cursor-pointer"
+          disabled={blocking}
+          className="w-full py-3 rounded-lg font-semibold text-sm transition-all bg-red-600 hover:bg-red-500 text-white shadow-lg shadow-red-900/30 disabled:bg-neutral-800 disabled:text-neutral-500 disabled:cursor-not-allowed disabled:shadow-none active:scale-[0.98] cursor-pointer"
         >
           {t.downloadDxf}
         </button>
-        {errors.length > 0 && (
-          <p className="text-xs text-red-400 text-center">
-            {t.fixErrors}
-          </p>
-        )}
+        {blocking && <p className="text-xs text-[var(--c-accent)] text-center">{t.fixErrors}</p>}
 
-        {/* ================================================================ */}
+        <div className="grid grid-cols-2 gap-2">
+          <button onClick={onExportStl} disabled={blocking} className="py-2 rounded-lg text-xs font-semibold bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-[var(--c-accent-2)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">{t.downloadStl}</button>
+          <button onClick={onPrintSpec} disabled={blocking} className="py-2 rounded-lg text-xs font-semibold bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-[var(--c-accent-2)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">{t.printSpec}</button>
+        </div>
+
+        {/* Batch sheet */}
+        <div className="bg-[var(--c-surface-2)] rounded-lg p-3 border border-[var(--c-border)]">
+          <p className="text-xs text-[var(--c-text-2)] font-semibold mb-2">{t.nestedExport}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <NumberInput label={t.nestCount} value={nestCount} onChange={(v) => setNestCount(Math.max(1, Math.round(v)))} min={1} max={100} step={1} unit="" />
+            <NumberInput label={t.nestGap} value={nestGap} onChange={(v) => setNestGap(Math.max(0, v))} min={0} step={1} length />
+          </div>
+          <button onClick={() => onExportNested(nestCount, nestGap)} disabled={blocking} className="w-full mt-1 py-2 rounded-lg text-xs font-semibold bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-[var(--c-accent-2)] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">{t.exportNested}</button>
+        </div>
+
         {/* ORDER VIA WHATSAPP */}
-        {/* ================================================================ */}
-        <div className="bg-[#1a0e0e] rounded-lg p-3 border border-red-900/30">
+        <div className="bg-[var(--c-surface-2)] rounded-lg p-3 border border-[var(--c-border)]">
           <SectionHeader title={t.sectionOrder} icon="📦" />
-          <p className="text-xs text-neutral-400 mb-3 leading-relaxed">
-            {t.orderDescription}
-          </p>
-          <NumberInput
-            label={t.quantity}
-            value={quantity}
-            onChange={(v) => onQuantityChange(Math.max(1, Math.round(v)))}
-            min={1}
-            max={10000}
-            step={1}
-            unit={t.quantityUnit}
-          />
+          <p className="text-xs text-[var(--c-text-3)] mb-3 leading-relaxed">{t.orderDescription}</p>
+          <NumberInput label={t.quantity} value={quantity} onChange={(v) => onQuantityChange(Math.max(1, Math.round(v)))} min={1} max={10000} step={1} unit={t.quantityUnit} />
           <a
             href={buildWhatsAppUrl(params, dims, quantity, weight)}
             target="_blank"
@@ -366,36 +386,41 @@ export default function ParameterPanel({
           </a>
         </div>
 
-        {/* ================================================================ */}
-        {/* SHARE LINK */}
-        {/* ================================================================ */}
+        {/* SHARE + QR */}
         <button
           onClick={() => {
             navigator.clipboard.writeText(buildShareUrl(params));
             setLinkCopied(true);
+            setShowQr(true);
             setTimeout(() => setLinkCopied(false), 2000);
           }}
-          className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all
-            bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-red-300 hover:text-white
-            active:scale-[0.98] cursor-pointer"
+          className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all bg-red-900/30 hover:bg-red-900/50 border border-red-800/40 text-[var(--c-accent-2)] active:scale-[0.98] cursor-pointer"
         >
           {linkCopied ? t.linkCopied : t.shareLink}
         </button>
+        {showQr && (
+          <div className="flex flex-col items-center gap-1 pt-1">
+            <QRCodeView value={buildShareUrl(params)} size={120} />
+            <p className="text-[10px] text-[var(--c-text-faint)]">{t.scanToOpen}</p>
+          </div>
+        )}
 
-        <p className="text-[10px] text-neutral-600 text-center">
-          {t.freeTool}
-        </p>
+        <p className="text-[10px] text-[var(--c-text-faint)] text-center">{t.freeTool}</p>
       </div>
     </div>
   );
 }
 
-/** Small helper component to display a dimension row */
-function DimRow({ label, value }: { label: string; value: number }) {
+function DimRow({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="flex justify-between">
-      <span className="text-neutral-500">{label}</span>
-      <span className="text-red-300 font-mono">{value.toFixed(3)} mm</span>
+    <div className="flex justify-between items-center">
+      <span className="flex items-center gap-1.5 text-[var(--c-text-muted)]">
+        {color && (
+          <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+        )}
+        {label}
+      </span>
+      <span className="text-[var(--c-accent-2)] font-mono">{value.toFixed(3)} mm</span>
     </div>
   );
 }

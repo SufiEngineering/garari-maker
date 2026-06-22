@@ -151,7 +151,6 @@ This project is open source and available under the [MIT License](LICENSE).
 **Sufi Engineering** — Custom sprocket fabrication & industrial parts
 
 - 🌐 [sufi.engineering](https://sufi.engineering)
-- 📱 WhatsApp: [+92 321 6954361](https://wa.me/923216954361)
 - 🐙 GitHub: [github.com/SufiEngineering](https://github.com/SufiEngineering)
 
 ---
