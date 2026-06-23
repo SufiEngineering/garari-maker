@@ -2,17 +2,540 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Free precision sprocket DXF generator by Sufi Engineering. Design custom sprockets and download CNC-ready files." />
-    <link rel="manifest" href="/manifest.webmanifest" />
+
+    <!-- Primary SEO -->
+    <title>Garari Maker — Free Online Sprocket & Gear DXF Generator | Sufi Engineering</title>
+    <meta
+      name="description"
+      content="Garari Maker is a free browser tool to design ANSI & ISO roller-chain sprockets and involute spur gears. Get a live 2D/3D preview, weight estimate, and CNC/laser-ready DXF & STL files — no CAD software, no sign-up."
+    />
+    <meta
+      name="keywords"
+      content="sprocket generator, sprocket DXF, chain sprocket design, ANSI sprocket, ISO sprocket, spur gear generator, gear DXF, laser cut sprocket, CNC sprocket, online CAD, garari, free sprocket maker"
+    />
+    <meta name="author" content="Sufi Engineering" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#0f0808" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Garari Maker" />
-    <title>Garari Maker — Sprocket DXF Generator | Sufi Engineering</title>
+    <link rel="canonical" href="https://gararimaker.bysufi.com/" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Garari Maker" />
+    <meta property="og:title" content="Garari Maker — Free Online Sprocket & Gear DXF Generator" />
+    <meta
+      property="og:description"
+      content="Design ANSI & ISO sprockets and spur gears in your browser. Live 2D/3D preview, weight estimate, and CNC/laser-ready DXF & STL export. Free, no sign-up."
+    />
+    <meta property="og:url" content="https://gararimaker.bysufi.com/" />
+    <meta property="og:image" content="https://gararimaker.bysufi.com/og-image.svg" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="ur_PK" />
+    <meta property="og:locale:alternate" content="ar_AR" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Garari Maker — Free Sprocket & Gear DXF Generator" />
+    <meta
+      name="twitter:description"
+      content="Design ANSI & ISO sprockets and spur gears in your browser. Live 2D/3D preview, weight estimate, CNC/laser-ready DXF & STL. Free."
+    />
+    <meta name="twitter:image" content="https://gararimaker.bysufi.com/og-image.svg" />
+
+    <!-- Structured data: helps both classic SEO and AI/GEO answer engines -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "SoftwareApplication",
+          "name": "Garari Maker",
+          "alternateName": "Garari Maker — Sprocket DXF Generator",
+          "applicationCategory": "DesignApplication",
+          "applicationSubCategory": "CAD",
+          "operatingSystem": "Web browser (Chrome, Firefox, Safari, Edge)",
+          "url": "https://gararimaker.bysufi.com/",
+          "description": "A free, browser-based tool to design ANSI and ISO roller-chain sprockets and involute spur gears, with live 2D/3D preview, weight estimation, and CNC/laser-ready DXF and STL export.",
+          "inLanguage": ["en", "ur", "ar"],
+          "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+          "featureList": [
+            "ANSI #25–#100 and ISO/DIN 8187 05B–20B chain sprockets",
+            "Involute spur gear generator",
+            "Live 2D SVG and interactive 3D preview",
+            "Weight estimation across 9 materials",
+            "CNC/laser-ready DXF export with layered features",
+            "STL export for 3D printing",
+            "Chain drive ratio & length calculator",
+            "Shareable design links and offline PWA support"
+          ],
+          "publisher": { "@type": "Organization", "name": "Sufi Engineering" }
+        },
+        {
+          "@type": "Organization",
+          "name": "Sufi Engineering",
+          "url": "https://sufi.engineering",
+          "description": "Custom sprocket fabrication and industrial parts manufacturing.",
+          "sameAs": ["https://github.com/SufiEngineering"]
+        },
+        {
+          "@type": "WebSite",
+          "name": "Garari Maker",
+          "url": "https://gararimaker.bysufi.com/",
+          "inLanguage": "en"
+        },
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://gararimaker.bysufi.com/" },
+            { "@type": "ListItem", "position": 2, "name": "App", "item": "https://gararimaker.bysufi.com/app/" }
+          ]
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is Garari Maker?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Garari Maker is a free, browser-based tool from Sufi Engineering for designing roller-chain sprockets and involute spur gears. 'Garari' is the Urdu word for sprocket. It produces CNC/laser-ready DXF files and STL models without any CAD software or sign-up." }
+            },
+            {
+              "@type": "Question",
+              "name": "Which chain standards are supported?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Both ANSI imperial chains (#25, #35, #40, #50, #60, #80, #100) and ISO 606 / DIN 8187 metric 'B' series chains (05B through 20B, which also match the British Standard)." }
+            },
+            {
+              "@type": "Question",
+              "name": "Is Garari Maker free?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. Garari Maker is completely free and runs entirely in your browser. There is no sign-up, no watermark, and no limit on downloads." }
+            },
+            {
+              "@type": "Question",
+              "name": "What file formats can I export?",
+              "acceptedAnswer": { "@type": "Answer", "text": "You can export layered DXF files for CNC and laser cutting, STL files for 3D printing, and PNG/SVG images of the drawing. A batch nesting export places several parts on one DXF sheet." }
+            },
+            {
+              "@type": "Question",
+              "name": "Are the tooth profiles accurate?",
+              "acceptedAnswer": { "@type": "Answer", "text": "Yes. Sprocket teeth follow the ANSI B29.1M standard with proper seating arcs, working flanks, and tip radii derived from chain pitch and roller diameter. Gears use a standard involute profile in the ISO module system." }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+
+    <style>
+      :root {
+        --bg: #0f0808;
+        --surface: #160c0c;
+        --surface-2: #1d1010;
+        --line: rgba(220, 60, 60, 0.18);
+        --text: #f5efef;
+        --muted: #b5a6a6;
+        --faint: #8a7a7a;
+        --red: #ef4444;
+        --red-2: #f87171;
+        --red-deep: #b91c1c;
+      }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.6;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+      }
+      a { color: inherit; text-decoration: none; }
+      img, svg { display: block; max-width: 100%; }
+      .wrap { width: min(1140px, 92vw); margin-inline: auto; }
+      .accent { color: var(--red-2); }
+      .eyebrow {
+        display: inline-block; font-size: 0.72rem; letter-spacing: 0.18em;
+        text-transform: uppercase; color: var(--red-2); font-weight: 700;
+        padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
+        background: rgba(239, 68, 68, 0.06);
+      }
+      h1, h2, h3 { line-height: 1.12; letter-spacing: -0.02em; font-weight: 800; }
+      h2 { font-size: clamp(1.7rem, 4vw, 2.6rem); }
+      .lead { color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.18rem); }
+      .btn {
+        display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 700;
+        padding: 0.85rem 1.5rem; border-radius: 12px; font-size: 0.98rem;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+      }
+      .btn-primary {
+        background: linear-gradient(180deg, var(--red) 0%, var(--red-deep) 100%);
+        color: #fff; box-shadow: 0 10px 30px -10px rgba(239, 68, 68, 0.6);
+      }
+      .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 16px 38px -12px rgba(239, 68, 68, 0.75); }
+      .btn-ghost { background: var(--surface-2); border-color: var(--line); color: var(--text); }
+      .btn-ghost:hover { transform: translateY(-2px); border-color: rgba(239,68,68,0.4); }
+
+      /* Header */
+      header.site {
+        position: sticky; top: 0; z-index: 50;
+        backdrop-filter: blur(12px);
+        background: rgba(15, 8, 8, 0.78);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav { display: flex; align-items: center; justify-content: space-between; padding: 0.85rem 0; }
+      .brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 800; }
+      .logo {
+        width: 34px; height: 34px; border-radius: 9px;
+        background: linear-gradient(180deg, var(--red), var(--red-deep));
+        display: grid; place-items: center; color: #fff; font-weight: 900;
+        box-shadow: 0 6px 18px -6px rgba(239,68,68,0.7);
+      }
+      .brand small { display: block; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--faint); font-weight: 600; text-transform: uppercase; }
+      .nav-links { display: flex; align-items: center; gap: 1.6rem; }
+      .nav-links a.link { color: var(--muted); font-size: 0.92rem; font-weight: 600; transition: color 0.15s; }
+      .nav-links a.link:hover { color: var(--text); }
+      @media (max-width: 760px) { .nav-links .link { display: none; } }
+
+      /* Hero */
+      .hero { position: relative; padding: clamp(3.5rem, 9vw, 7rem) 0 clamp(3rem, 7vw, 5rem); overflow: hidden; }
+      .hero::before {
+        content: ""; position: absolute; inset: 0; z-index: -2;
+        background:
+          radial-gradient(60% 50% at 70% 0%, rgba(239, 68, 68, 0.16), transparent 70%),
+          radial-gradient(40% 40% at 10% 20%, rgba(239, 68, 68, 0.08), transparent 70%);
+      }
+      .hero::after {
+        content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0.5;
+        background-image: radial-gradient(circle, rgba(239,68,68,0.07) 1px, transparent 1px);
+        background-size: 26px 26px;
+        -webkit-mask-image: linear-gradient(180deg, #000, transparent 80%);
+        mask-image: linear-gradient(180deg, #000, transparent 80%);
+      }
+      .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 3rem; align-items: center; }
+      @media (max-width: 880px) { .hero-grid { grid-template-columns: 1fr; gap: 2.2rem; } }
+      .hero h1 { font-size: clamp(2.3rem, 6vw, 4rem); margin: 1.1rem 0; }
+      .hero .lead { max-width: 38ch; }
+      .cta-row { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: 1.8rem; }
+      .hero-meta { display: flex; gap: 1.6rem; margin-top: 1.8rem; flex-wrap: wrap; }
+      .hero-meta div { font-size: 0.85rem; color: var(--faint); }
+      .hero-meta strong { display: block; font-size: 1.35rem; color: var(--text); font-weight: 800; }
+
+      /* Hero art */
+      .art { position: relative; aspect-ratio: 1; display: grid; place-items: center; }
+      .art .ring { position: absolute; inset: 0; }
+      .spin { animation: spin 26s linear infinite; transform-origin: 50% 50%; }
+      .spin.rev { animation-duration: 38s; animation-direction: reverse; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+      /* Sections */
+      section { padding: clamp(3rem, 7vw, 5.5rem) 0; }
+      .section-head { max-width: 60ch; margin-bottom: 2.5rem; }
+      .section-head p { color: var(--muted); margin-top: 0.7rem; }
+
+      /* Feature grid */
+      .grid { display: grid; gap: 1.1rem; }
+      .cols-3 { grid-template-columns: repeat(3, 1fr); }
+      .cols-2 { grid-template-columns: repeat(2, 1fr); }
+      @media (max-width: 880px) { .cols-3 { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 560px) { .cols-3, .cols-2 { grid-template-columns: 1fr; } }
+      .card {
+        background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+        border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem;
+        transition: transform 0.2s ease, border-color 0.2s ease;
+      }
+      .card:hover { transform: translateY(-4px); border-color: rgba(239, 68, 68, 0.4); }
+      .card .ico { font-size: 1.6rem; }
+      .card h3 { font-size: 1.1rem; margin: 0.7rem 0 0.4rem; }
+      .card p { color: var(--muted); font-size: 0.92rem; }
+
+      /* Steps */
+      .steps { counter-reset: step; }
+      .step { display: flex; gap: 1rem; align-items: flex-start; }
+      .step .num {
+        counter-increment: step; flex: none; width: 40px; height: 40px; border-radius: 50%;
+        display: grid; place-items: center; font-weight: 800; color: #fff;
+        background: linear-gradient(180deg, var(--red), var(--red-deep));
+      }
+      .step .num::before { content: counter(step); }
+      .step h3 { font-size: 1.05rem; }
+      .step p { color: var(--muted); font-size: 0.92rem; }
+
+      /* Table */
+      .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+      table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 520px; }
+      th, td { text-align: start; padding: 0.85rem 1.1rem; border-bottom: 1px solid var(--line); }
+      thead th { color: var(--red-2); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.74rem; }
+      tbody tr:last-child td { border-bottom: none; }
+      td.mono { font-variant-numeric: tabular-nums; color: var(--muted); }
+
+      /* FAQ */
+      details {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+        padding: 1.1rem 1.3rem; margin-bottom: 0.8rem;
+      }
+      details + details { margin-top: 0; }
+      summary { cursor: pointer; font-weight: 700; list-style: none; display: flex; justify-content: space-between; gap: 1rem; }
+      summary::-webkit-details-marker { display: none; }
+      summary::after { content: "+"; color: var(--red-2); font-weight: 800; }
+      details[open] summary::after { content: "–"; }
+      details p { color: var(--muted); margin-top: 0.7rem; font-size: 0.94rem; }
+
+      /* CTA band */
+      .cta-band {
+        text-align: center; border: 1px solid var(--line); border-radius: 24px;
+        padding: clamp(2.2rem, 6vw, 3.6rem);
+        background:
+          radial-gradient(80% 120% at 50% 0%, rgba(239, 68, 68, 0.16), transparent 70%),
+          linear-gradient(180deg, var(--surface), var(--surface-2));
+      }
+      .cta-band h2 { margin-bottom: 0.6rem; }
+      .cta-band p { color: var(--muted); max-width: 52ch; margin: 0 auto 1.6rem; }
+
+      /* Footer */
+      footer.site { border-top: 1px solid var(--line); padding: 2.5rem 0; color: var(--faint); font-size: 0.88rem; }
+      .foot-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1.5rem; }
+      footer.site a { color: var(--muted); }
+      footer.site a:hover { color: var(--text); }
+
+      /* Scroll reveal */
+      .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
+      .reveal.in { opacity: 1; transform: none; }
+      @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+    </style>
   </head>
+
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <header class="site">
+      <div class="wrap nav">
+        <a class="brand" href="/" aria-label="Garari Maker home">
+          <span class="logo">G</span>
+          <span>Garari Maker<small>by Sufi Engineering</small></span>
+        </a>
+        <nav class="nav-links" aria-label="Primary">
+          <a class="link" href="#features">Features</a>
+          <a class="link" href="#tools">Tools</a>
+          <a class="link" href="#how">How it works</a>
+          <a class="link" href="#faq">FAQ</a>
+          <a class="btn btn-primary" href="/app/">Launch App →</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <!-- HERO -->
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="wrap hero-grid">
+          <div>
+            <span class="eyebrow">Free · Browser-based · No sign-up</span>
+            <h1 id="hero-title">Design precision <span class="accent">sprockets &amp; gears</span> in your browser.</h1>
+            <p class="lead">
+              Garari Maker turns chain specs into CNC/laser-ready <strong>DXF</strong> and 3D-printable
+              <strong>STL</strong> files — with a live 2D/3D preview and instant weight estimate. No CAD seat required.
+            </p>
+            <div class="cta-row">
+              <a class="btn btn-primary" href="/app/">⚙️ Launch the App</a>
+              <a class="btn btn-ghost" href="https://github.com/SufiEngineering/garari-maker" target="_blank" rel="noopener">★ Star on GitHub</a>
+            </div>
+            <div class="hero-meta">
+              <div><strong>14+</strong> chain sizes (ANSI + ISO)</div>
+              <div><strong>3</strong> tools in one</div>
+              <div><strong>3</strong> languages</div>
+            </div>
+          </div>
+
+          <!-- Decorative sprocket art (inline SVG, crawlable, no extra request) -->
+          <div class="art" aria-hidden="true">
+            <svg class="ring spin" viewBox="-110 -110 220 220" fill="none" stroke="#ef4444" stroke-width="2">
+              <g>
+                <!-- generated 18-tooth sprocket silhouette -->
+                <path d="M0,-100 L8,-99 14,-86 26,-86 33,-94 47,-89 46,-75 56,-69 67,-75 72,-62 64,-52 70,-41 83,-43 84,-29 73,-23 75,-11 88,-8 84,5 71,5 69,17 80,25 73,37 61,33 54,43 60,55 47,60 42,49 30,51 27,64 14,62 14,49 2,46 -6,56 -16,47 -10,36 -20,29 -32,34 -38,22 -28,15 -32,3 -45,1 -44,-12 -32,-15 -33,-27 -45,-32 -39,-44 -27,-40 -22,-51 -30,-61 -19,-69 -11,-60 0,-65 1,-78 14,-78 z" opacity="0.0"/>
+              </g>
+              <circle r="92" stroke-dasharray="3 7" opacity="0.5" />
+              <circle r="74" stroke="#f87171" />
+              <circle r="30" stroke="#fbbf24" />
+              <circle r="55" stroke="#4ade80" stroke-dasharray="2 6" opacity="0.6" />
+            </svg>
+            <svg class="ring spin rev" viewBox="-110 -110 220 220" fill="none">
+              <g stroke="#ef4444" stroke-width="6" stroke-linecap="round" opacity="0.85">
+                <!-- 16 teeth as radial ticks near the pitch circle -->
+                <g id="teeth"></g>
+              </g>
+            </svg>
+            <div style="font-size:3.4rem">⚙️</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DEFINITION / GEO-friendly intro -->
+      <section style="padding-top:0">
+        <div class="wrap reveal">
+          <div class="card" style="border-color:rgba(239,68,68,0.3)">
+            <p style="font-size:1.05rem;color:var(--text)">
+              <strong>What is Garari Maker?</strong> <em>Garari</em> (گراری) is the Urdu word for <em>sprocket</em>.
+              Garari Maker is a free, open-source web app from <a class="accent" href="https://sufi.engineering" target="_blank" rel="noopener">Sufi Engineering</a>
+              that lets machinists, makers, and engineering students design roller-chain sprockets and involute spur gears
+              and export production-ready files — entirely in the browser, with nothing to install.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURES -->
+      <section id="features" aria-labelledby="features-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="eyebrow">Everything you need</span>
+            <h2 id="features-title">From chain number to cut file in minutes</h2>
+            <p>Accurate geometry, real-time feedback, and the export formats your shop actually uses.</p>
+          </div>
+          <div class="grid cols-3">
+            <article class="card reveal"><div class="ico">📐</div><h3>ANSI &amp; ISO standards</h3><p>ANSI B29.1M tooth profiles for #25–#100 and ISO/DIN 8187 metric 05B–20B chains, with correct seating arcs and tip radii.</p></article>
+            <article class="card reveal"><div class="ico">🧊</div><h3>2D &amp; 3D preview</h3><p>A live SVG drawing and an interactive, extruded 3D model that respects your real plate thickness.</p></article>
+            <article class="card reveal"><div class="ico">📥</div><h3>DXF, STL, PNG export</h3><p>Layered DXF for CNC/laser, STL for 3D printing, and image export. Batch-nest multiple parts on one sheet.</p></article>
+            <article class="card reveal"><div class="ico">⚖️</div><h3>Instant weight estimate</h3><p>Net area, volume, and weight across 9 materials — mild &amp; stainless steel, aluminum, brass, nylon and more.</p></article>
+            <article class="card reveal"><div class="ico">🔑</div><h3>Real shaft features</h3><p>Bore, hub, multi-strand, set-screw, keyway (cut as one clean keyhole), bolt holes, and lightening cutouts.</p></article>
+            <article class="card reveal"><div class="ico">🌐</div><h3>Bilingual &amp; offline</h3><p>Full English, Urdu &amp; Arabic with RTL support, mm/in units, light/dark themes, and offline PWA install.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <!-- TOOLS -->
+      <section id="tools" aria-labelledby="tools-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="eyebrow">Three tools, one app</span>
+            <h2 id="tools-title">More than a sprocket maker</h2>
+          </div>
+          <div class="grid cols-3">
+            <article class="card reveal"><div class="ico">⚙️</div><h3>Sprocket designer</h3><p>Full roller-chain sprocket builder with every shaft feature, weight estimate, and laser-ready output.</p></article>
+            <article class="card reveal"><div class="ico">🛞</div><h3>Spur gear generator</h3><p>Involute spur gears in the ISO module system — set module, teeth, pressure angle and bore, then export DXF.</p></article>
+            <article class="card reveal"><div class="ico">🧮</div><h3>Drive calculator</h3><p>Enter two sprockets and input RPM to get the ratio, output speed, chain length in links, and center distance.</p></article>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section id="how" aria-labelledby="how-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="eyebrow">Simple workflow</span>
+            <h2 id="how-title">How it works</h2>
+          </div>
+          <div class="grid cols-3">
+            <div class="step reveal"><div class="num"></div><div><h3>Pick your chain &amp; teeth</h3><p>Choose an ANSI or ISO chain and the number of teeth. Dimensions update instantly.</p></div></div>
+            <div class="step reveal"><div class="num"></div><div><h3>Add features</h3><p>Set the bore, hub, keyway, mounting holes and lightening — preview in 2D and 3D as you go.</p></div></div>
+            <div class="step reveal"><div class="num"></div><div><h3>Export &amp; cut</h3><p>Download a clean, layered DXF or STL and send it straight to your laser, CNC, or 3D printer.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STANDARDS TABLE (GEO: extractable spec data) -->
+      <section aria-labelledby="std-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <span class="eyebrow">Reference</span>
+            <h2 id="std-title">Supported chain standards</h2>
+            <p>Pitch is the distance between roller centers. Values follow the ANSI B29.1 and ISO 606 / DIN 8187 standards.</p>
+          </div>
+          <div class="table-wrap reveal">
+            <table>
+              <thead><tr><th>Standard</th><th>Chain</th><th>Pitch</th><th>Roller ⌀</th></tr></thead>
+              <tbody>
+                <tr><td>ANSI</td><td>#25</td><td class="mono">6.35 mm (¼″)</td><td class="mono">3.18 mm</td></tr>
+                <tr><td>ANSI</td><td>#40</td><td class="mono">12.70 mm (½″)</td><td class="mono">7.92 mm</td></tr>
+                <tr><td>ANSI</td><td>#60</td><td class="mono">19.05 mm (¾″)</td><td class="mono">11.91 mm</td></tr>
+                <tr><td>ANSI</td><td>#80</td><td class="mono">25.40 mm (1″)</td><td class="mono">15.88 mm</td></tr>
+                <tr><td>ISO / DIN 8187</td><td>08B</td><td class="mono">12.70 mm</td><td class="mono">8.51 mm</td></tr>
+                <tr><td>ISO / DIN 8187</td><td>12B</td><td class="mono">19.05 mm</td><td class="mono">12.07 mm</td></tr>
+                <tr><td>ISO / DIN 8187</td><td>16B</td><td class="mono">25.40 mm</td><td class="mono">15.88 mm</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ -->
+      <section id="faq" aria-labelledby="faq-title">
+        <div class="wrap" style="max-width:820px">
+          <div class="section-head reveal" style="margin-inline:auto;text-align:center">
+            <span class="eyebrow">Questions</span>
+            <h2 id="faq-title">Frequently asked questions</h2>
+          </div>
+          <div class="reveal">
+            <details open><summary>Is Garari Maker really free?</summary><p>Yes — it is completely free and runs entirely in your browser. No sign-up, no watermark, and no limit on downloads. The project is open source under the MIT license.</p></details>
+            <details><summary>Which chain standards are supported?</summary><p>Both ANSI imperial chains (#25, #35, #40, #50, #60, #80, #100) and ISO 606 / DIN 8187 metric “B” series chains (05B–20B), which also match the British Standard.</p></details>
+            <details><summary>What can I export?</summary><p>Layered DXF files for CNC and laser cutting, STL for 3D printing, and PNG/SVG images. A batch option nests several parts onto a single DXF sheet, and the keyway is exported as one clean closed contour so the laser never double-cuts.</p></details>
+            <details><summary>Are the tooth profiles manufacturing-accurate?</summary><p>Sprocket teeth follow the ANSI B29.1M standard with proper seating arcs, working flanks, and tip radii from chain pitch and roller diameter. Gears use a standard involute profile in the ISO module system.</p></details>
+            <details><summary>Do I need to install anything?</summary><p>No. It works in any modern browser. You can optionally install it as an offline app (PWA) so it keeps working in the workshop without a connection.</p></details>
+            <details><summary>Can Sufi Engineering manufacture my design?</summary><p>Yes. From the app you can send your full specification straight to Sufi Engineering via WhatsApp or email to have the part CNC-machined or laser-cut and shipped to you.</p></details>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section>
+        <div class="wrap">
+          <div class="cta-band reveal">
+            <h2>Ready to make your sprocket?</h2>
+            <p>Open the designer, dial in your chain and teeth, and download a cut-ready file in minutes.</p>
+            <a class="btn btn-primary" href="/app/">⚙️ Launch Garari Maker</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site">
+      <div class="wrap foot-grid">
+        <div>
+          <div class="brand" style="margin-bottom:0.5rem"><span class="logo">G</span><span>Garari Maker</span></div>
+          <p>Free sprocket &amp; gear DXF generator. Built with ❤️ in Pakistan by Sufi Engineering.</p>
+        </div>
+        <nav aria-label="Footer">
+          <p><a href="/app/">Launch App</a> · <a href="#features">Features</a> · <a href="#faq">FAQ</a></p>
+          <p style="margin-top:0.4rem"><a href="https://sufi.engineering" target="_blank" rel="noopener">sufi.engineering</a> · <a href="https://github.com/SufiEngineering/garari-maker" target="_blank" rel="noopener">GitHub</a></p>
+        </nav>
+      </div>
+      <div class="wrap" style="margin-top:1.5rem;border-top:1px solid var(--line);padding-top:1.2rem">
+        <small>© <span id="year">2026</span> Sufi Engineering. Garari Maker is open source under the MIT License.</small>
+      </div>
+    </footer>
+
+    <script>
+      // Current year
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      // Build decorative gear teeth ticks
+      (function () {
+        var g = document.getElementById('teeth');
+        if (g) {
+          var n = 16, ns = 'http://www.w3.org/2000/svg';
+          for (var i = 0; i < n; i++) {
+            var a = (i / n) * Math.PI * 2;
+            var l = document.createElementNS(ns, 'line');
+            l.setAttribute('x1', (Math.cos(a) * 78).toFixed(1));
+            l.setAttribute('y1', (Math.sin(a) * 78).toFixed(1));
+            l.setAttribute('x2', (Math.cos(a) * 92).toFixed(1));
+            l.setAttribute('y2', (Math.sin(a) * 92).toFixed(1));
+            g.appendChild(l);
+          }
+        }
+      })();
+
+      // Scroll reveal
+      (function () {
+        var els = document.querySelectorAll('.reveal');
+        if (!('IntersectionObserver' in window)) {
+          els.forEach(function (e) { e.classList.add('in'); });
+          return;
+        }
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.12 });
+        els.forEach(function (e) { io.observe(e); });
+      })();
+    </script>
   </body>
 </html>

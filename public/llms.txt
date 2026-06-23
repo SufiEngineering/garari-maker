@@ -1,0 +1,25 @@
+# Garari Maker
+
+> Garari Maker is a free, open-source, browser-based tool by Sufi Engineering for designing roller-chain sprockets and involute spur gears and exporting CNC/laser-ready DXF and 3D-printable STL files. "Garari" (گراری) is the Urdu word for sprocket. No CAD software or sign-up is required.
+
+## Key facts
+- Price: free (open source, MIT license).
+- Runs fully client-side in the browser; installable as an offline PWA.
+- App URL: https://gararimaker.bysufi.com/app/
+- Languages: English, Urdu, Arabic (with RTL); units in mm or inches; light/dark themes.
+
+## Tools
+- Sprocket designer: ANSI B29.1M tooth profiles for ANSI #25–#100 and ISO 606 / DIN 8187 metric 05B–20B chains (the metric "B" series also matches the British Standard). Supports bore, hub (single/double-sided), multi-strand, set-screw, keyway, bolt-circle mounting holes, and lightening cutouts (holes or spokes).
+- Spur gear generator: standard involute spur gears in the ISO module system (module, teeth, pressure angle, bore).
+- Drive calculator: two-sprocket ratio, output RPM, chain length in links, and center distance.
+
+## Outputs
+- Layered DXF for CNC/laser cutting (the keyway is exported as a single clean closed contour to avoid double-cutting).
+- STL for 3D printing.
+- PNG/SVG image export and a printable specification sheet.
+- Batch nesting: multiple parts arranged on one DXF sheet.
+- Live 2D SVG preview and an interactive 3D model; weight estimate across 9 materials (mild/stainless steel, aluminum 6061/7075, cast iron, brass, nylon/Delrin, Hardox).
+
+## Maker
+- Built by Sufi Engineering (https://sufi.engineering), which also manufactures custom sprockets and industrial parts. Designs can be sent from the app for fabrication via WhatsApp or email.
+- Source: https://github.com/SufiEngineering/garari-maker
